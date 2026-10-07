@@ -2,8 +2,8 @@ import asyncio
 import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate     
-from langchain_core.output_parsers import StrOutputParser 
+from langchain_core.prompts import ChatPromptTemplate
+from schemas import AnalisisTecnico  # NUEVO
 
 load_dotenv()
 
@@ -14,20 +14,22 @@ model = ChatOpenAI(
     temperature=0,
 )
 
-prompt = ChatPromptTemplate.from_messages([                                      
-    ("system", "Sos un ingeniero de software senior que analiza textos técnicos."),
-    ("human", "Listá las tecnologías mencionadas en este texto: {texto}"),      
-])                                                                               
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "Sos un ingeniero de software senior. Analizás textos técnicos "   # CAMBIA
+               "(descripciones de arquitectura o logs de error) y extraés sus entidades técnicas."),
+    ("human", "Analizá el siguiente texto:\n\n{texto}"),                          # CAMBIA
+])
 
-parser = StrOutputParser()
+structured_model = model.with_structured_output(AnalisisTecnico)  # NUEVO
 
-chain = prompt | model | parser
+chain = prompt | structured_model  # CAMBIA
 
 async def main():
     resultado = await chain.ainvoke(
         {"texto": "Nuestra API en FastAPI usa Redis como caché y PostgreSQL como base de datos. Con 500 usuarios concurrentes se cae."}
     )
-    print(resultado)
+    print(resultado)               # CAMBIA (antes imprimía texto)
+    print(resultado.tecnologias)   # NUEVO
 
 if __name__ == "__main__":
     asyncio.run(main())
