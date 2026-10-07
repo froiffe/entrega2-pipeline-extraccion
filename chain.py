@@ -1,5 +1,4 @@
-import asyncio
-import logging                                               # NUEVO
+import logging                                               
 import os
 import openai
 from dotenv import load_dotenv
@@ -11,11 +10,11 @@ from schemas import AnalisisTecnico
 
 load_dotenv()
 
-logging.basicConfig(                                                        # NUEVO
-    level=logging.INFO,                                                     # NUEVO
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",          # NUEVO
-)                                                                           # NUEVO
-logger = logging.getLogger("pipeline")                                      # NUEVO
+logging.basicConfig(                                                        
+    level=logging.INFO,                                                     
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",          
+)                                                                           
+logger = logging.getLogger("pipeline")                                      
 
 model = ChatOpenAI(
     model="gemini-3.5-flash-lite",
@@ -48,7 +47,7 @@ structured_model = model.with_structured_output(AnalisisTecnico).with_retry(
 chain = prompt | structured_model
 
 
-async def process_text(text: str) -> AnalisisTecnico:                       # NUEVO
+async def process_text(text: str) -> AnalisisTecnico:                       
     logger.info(f"Procesando texto de {len(text)} caracteres")
     try:
         resultado = await chain.ainvoke({"texto": text})
@@ -60,15 +59,3 @@ async def process_text(text: str) -> AnalisisTecnico:                       # NU
         f"criticidad={resultado.nivel_de_criticidad.value}"
     )
     return resultado
-
-
-async def main():                                                           # CAMBIA
-    resultado = await process_text(
-        "Nuestra API en FastAPI usa Redis como caché y PostgreSQL como base de datos. "
-        "Con 500 usuarios concurrentes se cae."
-    )
-    print(resultado.model_dump_json(indent=2))
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
